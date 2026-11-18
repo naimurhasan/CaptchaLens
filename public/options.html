@@ -36,6 +36,12 @@
         <small>Any OpenAI-compatible endpoint (Ollama, LM Studio, llama.cpp server). Local needs no key.</small>
       </label>
 
+      <label>
+        <span>Audio routing (experimental)</span>
+        <input id="audio-model" type="text" spellcheck="false" placeholder="google/gemini-2.5-flash-lite" />
+        <small>Audio captchas route through OpenRouter chat with this vision/audio model. Vision stays on the provider above.</small>
+      </label>
+
       <div class="row-actions">
         <button id="save">Save</button>
         <span id="status"></span>

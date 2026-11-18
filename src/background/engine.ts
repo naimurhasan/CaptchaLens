@@ -6,6 +6,7 @@ import {
 import type { DecisionsResponse, SolveResult } from "../core/solver";
 import {
   CHAT_SYSTEM_PROMPT,
+  DEFAULT_AUDIO_MODEL,
   DEFAULT_MODELS,
   loadSolverSettings,
   providerConfigured,
@@ -15,6 +16,7 @@ import type { SolverSettings } from "../core/settings";
 declare const process: { env: Record<string, string | undefined> };
 
 const DECISIONS_URL = "https://openrouter.ai/api/alpha/decisions";
+const OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 
 function extractJson(text: string): Record<string, unknown> | null {
@@ -220,4 +222,87 @@ export async function solvePuzzle(
     case "local":
       return solveLocalChat(settings, imageDataUrl, ctx);
   }
+}
+
+const AUDIO_SYSTEM_PROMPT = `You are an audio captcha solver. The audio contains spoken characters, words, or digits, possibly with distortion or background noise. Transcribe exactly what is spoken. Respond with ONLY a JSON object: {"transcription": "exact transcription", "confidence": number between 0 and 1}. No markdown, no extra text.`;
+
+export async function solveAudio(
+  audioDataUrl: string,
+  context?: string
+): Promise<SolveResult> {
+  const settings = await loadSolverSettings();
+  if (!providerConfigured(settings)) {
+    throw new Error(
+      `No API key configured for ${settings.provider}. Open settings and add credentials.`
+    );
+  }
+
+  const match = audioDataUrl.match(/^data:audio\/([^;]+);base64,(.+)$/);
+  if (!match) throw new Error("Audio is not a base64 data URL.");
+  const [, format, data] = match;
+
+  const model = settings.audioModel || DEFAULT_AUDIO_MODEL;
+  if (settings.audioProvider !== "openrouter") {
+    throw new Error(
+      `Audio solving routes through OpenRouter chat (input_audio). Configure provider "openrouter" for audio, or capture audio yourself and use the OCR/typing flow.`
+    );
+  }
+
+  const res = await fetch(OPENROUTER_CHAT_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${settings.apiKey}`,
+      "Content-Type": "application/json",
+      "X-Title": "CaptchaLens",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 200,
+      temperature: 0,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `${AUDIO_SYSTEM_PROMPT}${context ? ` Context: ${context}.` : ""}`,
+            },
+            { type: "input_audio", input_audio: { data, format } },
+          ],
+        },
+      ],
+    }),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    error?: { message?: string };
+  };
+  if (!res.ok) throw new Error(json.error?.message ?? `OpenRouter HTTP ${res.status}`);
+  const text = json.choices?.[0]?.message?.content ?? "";
+  const parsed = extractJson(text);
+  const transcription =
+    parsed && typeof parsed.transcription === "string"
+      ? parsed.transcription
+      : text.trim();
+  if (!transcription) throw new Error("Audio model returned no transcription.");
+
+  return {
+    model: `openrouter:${model}`,
+    challengeType: "audio",
+    typeConfidence: 1,
+    typeProbabilities: {},
+    solvableProbability: 1,
+    complexityScore: 0,
+    complexityBuckets: ["single transcription"],
+    confidence:
+      parsed && typeof parsed.confidence === "number"
+        ? Math.min(1, Math.max(0, parsed.confidence))
+        : 0.6,
+    instructions: "Transcribe the audio captcha and submit the text.",
+    answer: transcription,
+    targetBox: null,
+    reasoning: `audio transcription via ${model}`,
+    raw: text,
+  };
 }

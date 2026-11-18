@@ -7,6 +7,8 @@ export interface SolverSettings {
   apiKey: string;
   model: string;
   baseUrl: string;
+  audioProvider: ProviderId;
+  audioModel: string;
 }
 
 declare const process: { env: Record<string, string | undefined> };
@@ -18,10 +20,12 @@ export const PROVIDER_LABELS: Record<ProviderId, string> = {
 };
 
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
-  openrouter: process.env.OPENROUTER_MODEL ?? "typesafe/jev-1.14",
+  openrouter: process.env.OPENROUTER_MODEL ?? "typesafe/jev-router",
   gemini: "gemini-flash-latest",
   local: "qwen2.5vl",
 };
+
+export const DEFAULT_AUDIO_MODEL = "google/gemini-2.5-flash-lite";
 
 export const DEFAULT_BASE_URL = "http://localhost:11434/v1";
 
@@ -33,6 +37,8 @@ function defaults(): SolverSettings {
     apiKey: process.env.OPENROUTER_API_KEY ?? "",
     model: DEFAULT_MODELS.openrouter,
     baseUrl: DEFAULT_BASE_URL,
+    audioProvider: "openrouter",
+    audioModel: DEFAULT_AUDIO_MODEL,
   };
 }
 
@@ -43,9 +49,13 @@ function sanitize(raw: unknown): Partial<SolverSettings> {
   if (r.provider === "openrouter" || r.provider === "gemini" || r.provider === "local") {
     out.provider = r.provider;
   }
+  if (r.audioProvider === "openrouter" || r.audioProvider === "gemini" || r.audioProvider === "local") {
+    out.audioProvider = r.audioProvider;
+  }
   if (typeof r.apiKey === "string") out.apiKey = r.apiKey;
   if (typeof r.model === "string" && r.model.trim().length > 0) out.model = r.model.trim();
   if (typeof r.baseUrl === "string" && r.baseUrl.trim().length > 0) out.baseUrl = r.baseUrl.trim().replace(/\/+$/, "");
+  if (typeof r.audioModel === "string" && r.audioModel.trim().length > 0) out.audioModel = r.audioModel.trim();
   return out;
 }
 
@@ -64,7 +74,11 @@ export async function saveSolverSettings(patch: Partial<SolverSettings>): Promis
 export function settingsSummary(s: SolverSettings): string {
   const keyState = s.apiKey ? "key set" : "no key";
   const extra = s.provider === "local" ? ` · ${s.baseUrl}` : "";
-  return `${PROVIDER_LABELS[s.provider]} · ${s.model || DEFAULT_MODELS[s.provider]} · ${keyState}${extra}`;
+  const audio =
+    s.audioProvider !== s.provider
+      ? ` · audio: ${s.audioProvider}:${s.audioModel || DEFAULT_MODELS[s.audioProvider]}`
+      : "";
+  return `${PROVIDER_LABELS[s.provider]} · ${s.model || DEFAULT_MODELS[s.provider]} · ${keyState}${extra}${audio}`;
 }
 
 export function providerConfigured(s: SolverSettings): boolean {

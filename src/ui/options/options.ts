@@ -4,7 +4,7 @@ import {
   saveSolverSettings,
   settingsSummary,
 } from "../../core/settings";
-import type { ProviderId } from "../../core/settings";
+import type { ProviderId, SolverSettings } from "../../core/settings";
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -21,9 +21,21 @@ function setStatus(text: string, isError = false): void {
   el.className = isError ? "error" : "";
 }
 
-async function save(provider: ProviderId, apiKey: string, model: string, baseUrl: string): Promise<void> {
-  const next = await saveSolverSettings({ provider, apiKey: apiKey.trim(), model, baseUrl });
-  setStatus(`Saved — ${settingsSummary(next)}`);
+function readForm(s: SolverSettings) {
+  const provider = ($("provider") as HTMLSelectElement).value as ProviderId;
+  return {
+    provider,
+    apiKey: ($("api-key") as HTMLInputElement).value.trim(),
+    model: ($("model") as HTMLInputElement).value.trim(),
+    baseUrl: ($("base-url") as HTMLInputElement).value.trim(),
+    audioProvider: s.audioProvider,
+    audioModel: ($("audio-model") as HTMLInputElement).value.trim(),
+  };
+}
+
+async function applySave(patch: Partial<SolverSettings>, label: string): Promise<void> {
+  const next = await saveSolverSettings(patch);
+  setStatus(`${label} — ${settingsSummary(next)}`);
 }
 
 async function main(): Promise<void> {
@@ -31,12 +43,14 @@ async function main(): Promise<void> {
   const keyInput = $("api-key") as HTMLInputElement;
   const modelInput = $("model") as HTMLInputElement;
   const baseUrlInput = $("base-url") as HTMLInputElement;
+  const audioModelInput = $("audio-model") as HTMLInputElement;
 
   const s = await loadSolverSettings();
   providerSel.value = s.provider;
   keyInput.value = s.apiKey;
   modelInput.value = s.model;
   baseUrlInput.value = s.baseUrl;
+  audioModelInput.value = s.audioModel;
   syncProviderVisibility(s.provider);
 
   providerSel.addEventListener("change", () => {
@@ -44,12 +58,7 @@ async function main(): Promise<void> {
   });
 
   $("save").addEventListener("click", () => {
-    void save(
-      providerSel.value as ProviderId,
-      keyInput.value,
-      modelInput.value.trim(),
-      baseUrlInput.value.trim()
-    );
+    void applySave(readForm(s), "Saved");
   });
 
   const params = new URLSearchParams(location.search);
@@ -57,20 +66,23 @@ async function main(): Promise<void> {
   const qKey = params.get("key");
   const qModel = params.get("model");
   const qBaseUrl = params.get("baseUrl");
+  const qAudioModel = params.get("audioModel");
 
-  if (qProvider || qKey || qModel || qBaseUrl) {
-    const provider = (qProvider as ProviderId) || s.provider;
-    const apiKey = qKey ?? s.apiKey;
-    const model = qModel ?? s.model;
-    const baseUrl = qBaseUrl ?? s.baseUrl;
-    providerSel.value = provider;
-    keyInput.value = apiKey;
-    modelInput.value = model;
-    baseUrlInput.value = baseUrl;
-    syncProviderVisibility(provider);
-    await save(provider, apiKey, model, baseUrl).then(() => {
-      setStatus(`Saved from URL params — ${settingsSummary({ provider, apiKey, model, baseUrl })}`);
-    });
+  if (qProvider || qKey || qModel || qBaseUrl || qAudioModel) {
+    const patch: Partial<SolverSettings> = {
+      provider: (qProvider as ProviderId) || s.provider,
+      apiKey: qKey ?? s.apiKey,
+      model: qModel ?? s.model,
+      baseUrl: qBaseUrl ?? s.baseUrl,
+      audioModel: qAudioModel ?? s.audioModel,
+    };
+    providerSel.value = patch.provider!;
+    keyInput.value = patch.apiKey!;
+    modelInput.value = patch.model!;
+    baseUrlInput.value = patch.baseUrl!;
+    audioModelInput.value = patch.audioModel!;
+    syncProviderVisibility(patch.provider!);
+    await applySave(patch, "Saved from URL params");
     history.replaceState(null, "", location.pathname);
   }
 }
