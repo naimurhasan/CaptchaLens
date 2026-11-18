@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>CaptchaLens — Solver Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>CaptchaLens — Solver Settings</h1>
+
+      <label>
+        <span>Provider</span>
+        <select id="provider">
+          <option value="openrouter">OpenRouter (Decisions API — recommended)</option>
+          <option value="gemini">Google Gemini (AI Studio key)</option>
+          <option value="local">Local (OpenAI-compatible: Ollama, LM Studio…)</option>
+        </select>
+      </label>
+
+      <label id="model-row">
+        <span>Model</span>
+        <input id="model" type="text" spellcheck="false" placeholder="typesafe/jev-1.14" />
+        <small id="model-hint"></small>
+      </label>
+
+      <label id="key-row">
+        <span>API key</span>
+        <input id="api-key" type="password" spellcheck="false" placeholder="paste key — stored in chrome.storage.sync" />
+        <small>OpenRouter keys: openrouter.ai/keys · Gemini keys: aistudio.google.com/apikey</small>
+      </label>
+
+      <label id="baseurl-row" class="hidden">
+        <span>Base URL</span>
+        <input id="base-url" type="text" spellcheck="false" placeholder="http://localhost:11434/v1" />
+        <small>Any OpenAI-compatible endpoint (Ollama, LM Studio, llama.cpp server). Local needs no key.</small>
+      </label>
+
+      <div class="row-actions">
+        <button id="save">Save</button>
+        <span id="status"></span>
+      </div>
+
+      <section class="notes">
+        <p><strong>Recommended:</strong> OpenRouter + <code>typesafe/jev-1.14</code> — fastest, cheapest, sharpest calibration in our benchmarks.</p>
+        <p>Automation: pre-seed this page via URL params — <code>options.html?provider=openrouter&amp;key=…&amp;model=typesafe/jev-1.14</code> saves on load.</p>
+      </section>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

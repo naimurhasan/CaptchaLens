@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "CaptchaLens",
+  "version": "0.2.0",
+  "description": "Detect and analyze bot-detection challenges on any page, with an optional AI decision engine.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "CaptchaLens"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://openrouter.ai/*",
+    "https://generativelanguage.googleapis.com/*",
+    "http://localhost/*",
+    "https://localhost/*"
+  ]
+}

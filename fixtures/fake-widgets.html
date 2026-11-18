@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>CaptchaLens Fixture Page</title>
+    <style>
+      body {
+        font: 14px system-ui, sans-serif;
+        max-width: 640px;
+        margin: 40px auto;
+      }
+      .fixture {
+        border: 1px dashed #999;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CaptchaLens Fixture Page</h1>
+    <p>Static widget stand-ins for scanner testing. No vendor scripts are loaded.</p>
+
+    <div class="fixture">
+      <h2>reCAPTCHA v2</h2>
+      <div class="g-recaptcha" data-sitekey="fake-sitekey-v2"></div>
+      <textarea id="g-recaptcha-response"></textarea>
+    </div>
+
+    <div class="fixture">
+      <h2>reCAPTCHA v2 invisible</h2>
+      <div class="g-recaptcha" data-sitekey="fake-sitekey-inv" data-size="invisible"></div>
+    </div>
+
+    <div class="fixture">
+      <h2>reCAPTCHA v3</h2>
+      <div class="grecaptcha-badge">reCAPTCHA badge stand-in</div>
+    </div>
+
+    <div class="fixture">
+      <h2>Cloudflare Turnstile</h2>
+      <div class="cf-turnstile" data-sitekey="fake-turnstile-key" data-appearance="interaction"></div>
+    </div>
+
+    <div class="fixture">
+      <h2>hCaptcha</h2>
+      <div class="h-captcha" data-sitekey="fake-hcaptcha-key"></div>
+      <textarea id="h-captcha-response"></textarea>
+    </div>
+  </body>
+</html>

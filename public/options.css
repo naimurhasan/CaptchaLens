@@ -1,0 +1,101 @@
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  font: 14px/1.5 system-ui, -apple-system, sans-serif;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 28px 20px;
+}
+
+h1 {
+  font-size: 18px;
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  margin-bottom: 14px;
+}
+
+label > span {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+select,
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(127, 127, 127, 0.45);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+small {
+  display: block;
+  margin-top: 3px;
+  opacity: 0.65;
+  font-size: 11px;
+}
+
+.hidden {
+  display: none;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+#save {
+  padding: 8px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #4285f4;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#status {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+#status.error {
+  color: #e53935;
+  opacity: 1;
+}
+
+.notes {
+  border-top: 1px solid rgba(127, 127, 127, 0.3);
+  padding-top: 14px;
+  font-size: 12px;
+}
+
+.notes p {
+  margin-bottom: 8px;
+}
+
+.notes code {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  background: rgba(127, 127, 127, 0.15);
+  padding: 1px 5px;
+  border-radius: 4px;
+  word-break: break-all;
+}
